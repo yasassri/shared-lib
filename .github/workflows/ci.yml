@@ -1,0 +1,26 @@
+name: Build LD_PRELOAD script for Ubuntu 20.04
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Compile in Ubuntu 20.04 container
+      # The command now first updates the package manager and installs gcc,
+      # then it compiles the code.
+      run: |
+        docker run --rm -v "${{ github.workspace }}":/src ubuntu:20.04 sh -c "apt-get update && apt-get install -y gcc && cd /src && gcc -shared -fPIC -o unset_java_tool_options.so unset_java_tool_options.c"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ld-preload-script-ubuntu-20.04
+        path: unset_java_tool_options.so
